@@ -1,11 +1,5 @@
 #include "get_next_line.h"
 
-/*
- * TODO *
- *		* Protect read()
- * 		* Norm
- * 		* Bonus (multiple fds)
- */
 static char	*trim_line(char **buf, char **line)
 {
 	char	*ptr_endl;
@@ -15,7 +9,8 @@ static char	*trim_line(char **buf, char **line)
 	if (**buf != '\0')
 	{
 		to_free = *line;
-		if ((ptr_endl = ft_strchr(*buf, '\n')) != NULL)
+		ptr_endl = ft_strchr(*buf, '\n');
+		if (ptr_endl != NULL)
 		{
 			*ptr_endl = '\0';
 			*line = ft_strjoin(*line, *buf);
@@ -24,32 +19,78 @@ static char	*trim_line(char **buf, char **line)
 		else
 		{
 			*line = ft_strjoin(*line, *buf);
-			ft_bzero(*buf, BUFFER_SIZE);
+			**buf = '\0';
 		}
 		free(to_free);
 	}
 	return (ptr_endl);
 }
 
+static int	return_handler(char *ptr_endl, char **buf)
+{
+	if (ptr_endl != NULL)
+	{
+		return (1);
+	}
+	else
+	{
+		free(*buf);
+		*buf = NULL;
+		return (0);
+	}
+}
+
+static int	init_handler(int fd, char **line, char **buf)
+{
+	if (*buf == NULL)
+	{
+		*buf = (char *)ft_calloc(BUFFER_SIZE + 1);
+		if (*buf == NULL)
+		{
+			return (-1);
+		}
+	}
+	if (BUFFER_SIZE < 1 || line == NULL || read(fd, 0, 0) == -1)
+	{
+		free(*buf);
+		*buf = NULL;
+		return (-1);
+	}
+	return (0);
+}
+
+static int	error_handler(char **line, ssize_t n_read, char **buf)
+{
+	if (*line == NULL || n_read == -1)
+	{
+		free(*buf);
+		*buf = NULL;
+		return (-1);
+	}
+	return (0);
+}
+
 int	get_next_line(int fd, char **line)
 {
-	char 		*ptr_endl;
+	char		*ptr_endl;
 	static char	*buf;
+	ssize_t		n_read;
 
-	if (buf == NULL)
-	{
-		buf = (char *) calloc(BUFFER_SIZE + 1, 1);
-	}
-	if (BUFFER_SIZE < 1 || line == NULL || buf == NULL || read(fd, 0, 0) == -1)
-		return (-1); // buf leak
-	*line = ft_strdup("");
+	if (init_handler(fd, line, &buf) == -1)
+		return (-1);
+	*line = ft_strjoin("", "");
+	if (error_handler(line, 0, &buf) == -1)
+		return (-1);
 	ptr_endl = trim_line(&buf, line);
-	while ((ptr_endl == NULL) && read(fd, buf, BUFFER_SIZE)) // FIXME protect read
+	while (ptr_endl == NULL)
 	{
+		n_read = read(fd, buf, BUFFER_SIZE);
+		if (error_handler(line, n_read, &buf) == -1)
+			return (-1);
+		buf[n_read] = '\0';
+		if (n_read == 0)
+			break ;
 		ptr_endl = trim_line(&buf, line);
 	}
-	if (ptr_endl)
-		return (1);
-	else
-		return (0);
+	return (return_handler(ptr_endl, &buf));
 }
