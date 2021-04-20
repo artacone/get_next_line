@@ -92,3 +92,46 @@ void	*ft_memcpy(void *dest, const void *src, size_t n)
 	}
 	return (dest);
 }
+
+void	*ft_memset(void *s, int c, size_t n)
+{
+	unsigned char	*d;
+
+	d = s;
+	while (n-- != 0)
+	{
+		*d++ = (unsigned char)c;
+	}
+	return (s);
+}
+
+void	ft_bzero(void *s, size_t n)
+{
+	ft_memset(s, '\0', n);
+}
+
+size_t	ft_strlcpy(char *dst, const char *src, size_t size)
+{
+	const char	*s;
+	size_t		n_left;
+
+	s = src;
+	n_left = size;
+	if (n_left != 0)
+	{
+		while (--n_left != 0)
+		{
+			*dst++ = *s;
+			if (*s++ == '\0')
+				break ;
+		}
+	}
+	if (n_left == 0)
+	{
+		if (size != 0)
+			*dst = '\0';
+		while (*s++)
+			;
+	}
+	return (s - src - 1);
+}
