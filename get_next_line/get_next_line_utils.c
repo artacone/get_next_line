@@ -80,19 +80,19 @@ size_t	ft_strlcpy(char *dst, const char *src, size_t size)
 	return (s - src - 1);
 }
 
-void	*ft_calloc(size_t n_bytes)
+char	*ft_str_calloc(size_t n_bytes)
 {
-	void			*ptr;
-	unsigned char	*ptr_i;
+	void			*str;
+	unsigned char	*str_i;
 
-	ptr = malloc(n_bytes);
-	if (ptr != NULL)
+	str = malloc(n_bytes);
+	if (str != NULL)
 	{
-		ptr_i = ptr;
+		str_i = str;
 		while (n_bytes-- != 0)
 		{
-			*ptr_i++ = '\0';
+			*str_i++ = '\0';
 		}
 	}
-	return (ptr);
+	return (str);
 }

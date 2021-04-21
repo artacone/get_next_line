@@ -44,7 +44,7 @@ static int	init_handler(int fd, char **line, char **buf)
 {
 	if (*buf == NULL)
 	{
-		*buf = (char *)ft_calloc(BUFFER_SIZE + 1);
+		*buf = (char *)ft_str_calloc(BUFFER_SIZE + 1);
 		if (*buf == NULL)
 		{
 			return (-1);
@@ -56,6 +56,7 @@ static int	init_handler(int fd, char **line, char **buf)
 		*buf = NULL;
 		return (-1);
 	}
+	*line = ft_str_calloc(1);
 	return (0);
 }
 
@@ -78,7 +79,6 @@ int	get_next_line(int fd, char **line)
 
 	if (init_handler(fd, line, &buf) == -1)
 		return (-1);
-	*line = ft_strjoin("", "");
 	if (error_handler(line, 0, &buf) == -1)
 		return (-1);
 	ptr_endl = trim_line(&buf, line);
