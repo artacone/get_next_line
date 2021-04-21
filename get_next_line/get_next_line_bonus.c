@@ -2,9 +2,7 @@
 
 /*
  * TODO *
- *		* Protect read()
  * 		* Norm
- * 		* LEAK with buf
  */
 static char	*trim_line(char **buf, char **line)
 {
@@ -25,7 +23,7 @@ static char	*trim_line(char **buf, char **line)
 		else
 		{
 			*line = ft_strjoin(*line, *buf);
-			ft_bzero(*buf, BUFFER_SIZE);
+			**buf = '\0';
 		}
 		free(to_free);
 	}
@@ -35,20 +33,23 @@ static char	*trim_line(char **buf, char **line)
 static int	get_next_line_internal(int fd, char **line, char *buf)
 {
 	char	*ptr_endl;
+	ssize_t	n_read;
 
-	*line = ft_strjoin("", "");
-	if (line == NULL)
+	*line = ft_str_calloc(1);
+	if (*line == NULL)
 		return (-1);
 	ptr_endl = trim_line(&buf, line);
-	if (line == NULL)
-		return (-1);
-	while (ptr_endl == NULL && read(fd, buf, BUFFER_SIZE)) // FIXME protect read
+	while (ptr_endl == NULL)
 	{
-		ptr_endl = trim_line(&buf, line); // leak
-		if (line == NULL)
+		n_read = read(fd, buf, BUFFER_SIZE);
+		if (*line == NULL || n_read == -1)
 			return (-1);
+		buf[n_read] = '\0';
+		if (n_read == 0)
+			break ;
+		ptr_endl = trim_line(&buf, line);
 	}
-	if (ptr_endl) // '\n' was found
+	if (ptr_endl)
 		return (1);
 	else
 		return (0);
@@ -56,7 +57,7 @@ static int	get_next_line_internal(int fd, char **line, char *buf)
 
 t_buf_list	*create_new_buf_node(const int fd)
 {
-	t_buf_list *new;
+	t_buf_list	*new;
 
 	new = (t_buf_list *)malloc(sizeof(t_buf_list));
 	if (new)
@@ -73,6 +74,32 @@ t_buf_list	*create_new_buf_node(const int fd)
 	return (new);
 }
 
+static void	remove_fd_from_list(t_buf_list **head, int fd)
+{
+	t_buf_list	*node;
+	t_buf_list	*prev;
+
+	node = *head;
+	prev = NULL;
+	if (node != NULL && node->fd == fd)
+	{
+		*head = node->next;
+		free(node->buf);
+		free(node);
+		return ;
+	}
+	while (node != NULL && node->fd != fd)
+	{
+		prev = node;
+		node = node->next;
+	}
+	if (node == NULL)
+		return ;
+	prev->next = node->next;
+	free(node->buf);
+	free(node);
+}
+
 int	get_next_line(int fd, char **line)
 {
 	static t_buf_list	*head_buf_list;
@@ -81,7 +108,7 @@ int	get_next_line(int fd, char **line)
 
 	if (BUFFER_SIZE < 1 || line == NULL || read(fd, 0, 0) == -1)
 	{
-		//clear_list_buf(&head_buf);
+		remove_fd_from_list(&head_buf_list, fd);
 		return (-1);
 	}
 	if (head_buf_list == NULL)
@@ -97,12 +124,12 @@ int	get_next_line(int fd, char **line)
 		{
 			node_buf_list->next = create_new_buf_node(fd);
 			if (node_buf_list->next == NULL)
-				return (-1); // We don't clear all other fds
+				return (-1);
 		}
 		node_buf_list = node_buf_list->next;
 	}
-	ret = get_next_line_internal(fd, line, node_buf_list->buf); // FIXME leak on end EOF
+	ret = get_next_line_internal(fd, line, node_buf_list->buf);
 	if (ret == -1 || ret == 0)
-		//delete_node();
+		remove_fd_from_list(&head_buf_list, fd);
 	return (ret);
 }
