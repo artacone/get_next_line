@@ -14,12 +14,12 @@ typedef struct s_fd_buf
 	struct s_fd_buf	*next;
 }	t_buf_list;
 
-int		get_next_line(int fd, char **line);
+int			get_next_line(int fd, char **line);
 
-size_t	ft_strlen(const char *s);
-char	*ft_strjoin(char const *s1, char const *s2);
-char	*ft_strchr(const char *s, int c);
-size_t	ft_strlcpy(char *dst, const char *src, size_t size);
-char	*ft_str_calloc(size_t n_bytes);
+t_buf_list	*create_new_buf_node(const int fd);
+char		*ft_strjoin(char const *s1, char const *s2);
+char		*ft_strchr(const char *s, int c);
+size_t		ft_strlcpy(char *dst, const char *src, size_t size);
+char		*ft_str_calloc(size_t n_bytes);
 
 #endif

@@ -1,17 +1,5 @@
 #include "get_next_line_bonus.h"
 
-size_t	ft_strlen(const char *s)
-{
-	const char	*str;
-
-	str = s;
-	while (*str)
-	{
-		str++;
-	}
-	return (str - s);
-}
-
 char	*ft_strchr(const char *s, int c)
 {
 	char	ch;
@@ -35,21 +23,23 @@ char	*ft_strjoin(char const *s1, char const *s2)
 {
 	char	*res;
 	char	*resi;
+	size_t	s1_len;
+	size_t	s2_len;
 
-	res = (char *)malloc(ft_strlen(s1) + ft_strlen(s2) + 1);
+	s1_len = 0;
+	s2_len = 0;
+	while (s1[s1_len])
+		s1_len++;
+	while (s2[s2_len])
+		s2_len++;
+	res = (char *)malloc(s1_len + s2_len + 1);
 	if (res == NULL)
-	{
 		return (NULL);
-	}
 	resi = res;
 	while (*s1)
-	{
 		*resi++ = *s1++;
-	}
 	while (*s2)
-	{
 		*resi++ = *s2++;
-	}
 	*resi = '\0';
 	return (res);
 }
@@ -95,4 +85,23 @@ char	*ft_str_calloc(size_t n_bytes)
 		}
 	}
 	return (str);
+}
+
+t_buf_list	*create_new_buf_node(const int fd)
+{
+	t_buf_list	*new;
+
+	new = (t_buf_list *)malloc(sizeof(t_buf_list));
+	if (new)
+	{
+		new->fd = fd;
+		new->buf = (char *)calloc(BUFFER_SIZE + 1, 1);
+		if (new->buf == NULL)
+		{
+			free(new);
+			return (NULL);
+		}
+		new->next = NULL;
+	}
+	return (new);
 }

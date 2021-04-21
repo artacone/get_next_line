@@ -1,9 +1,5 @@
 #include "get_next_line_bonus.h"
 
-/*
- * TODO *
- * 		* Norm
- */
 static char	*trim_line(char **buf, char **line)
 {
 	char	*ptr_endl;
@@ -55,25 +51,6 @@ static int	get_next_line_internal(int fd, char **line, char *buf)
 		return (0);
 }
 
-t_buf_list	*create_new_buf_node(const int fd)
-{
-	t_buf_list	*new;
-
-	new = (t_buf_list *)malloc(sizeof(t_buf_list));
-	if (new)
-	{
-		new->fd = fd;
-		new->buf = (char *)calloc(BUFFER_SIZE + 1, 1);
-		if (new->buf == NULL)
-		{
-			free(new);
-			return (NULL);
-		}
-		new->next = NULL;
-	}
-	return (new);
-}
-
 static void	remove_fd_from_list(t_buf_list **head, int fd)
 {
 	t_buf_list	*node;
@@ -100,23 +77,30 @@ static void	remove_fd_from_list(t_buf_list **head, int fd)
 	free(node);
 }
 
+static int	init_handler(int fd, char **line, t_buf_list **head)
+{
+	if (BUFFER_SIZE < 1 || line == NULL || read(fd, 0, 0) == -1)
+	{
+		remove_fd_from_list(head, fd);
+		return (-1);
+	}
+	if (*head == NULL)
+	{
+		*head = create_new_buf_node(fd);
+		if (*head == NULL)
+			return (-1);
+	}
+	return (0);
+}
+
 int	get_next_line(int fd, char **line)
 {
 	static t_buf_list	*head_buf_list;
 	t_buf_list			*node_buf_list;
 	int					ret;
 
-	if (BUFFER_SIZE < 1 || line == NULL || read(fd, 0, 0) == -1)
-	{
-		remove_fd_from_list(&head_buf_list, fd);
+	if (init_handler(fd, line, &head_buf_list) == -1)
 		return (-1);
-	}
-	if (head_buf_list == NULL)
-	{
-		head_buf_list = create_new_buf_node(fd);
-		if (head_buf_list == NULL)
-			return (-1);
-	}
 	node_buf_list = head_buf_list;
 	while (node_buf_list->fd != fd)
 	{
