@@ -95,7 +95,7 @@ t_buf_list	*create_new_buf_node(const int fd)
 	if (new)
 	{
 		new->fd = fd;
-		new->buf = (char *)calloc(BUFFER_SIZE + 1, 1);
+		new->buf = ft_str_calloc(BUFFER_SIZE + 1);
 		if (new->buf == NULL)
 		{
 			free(new);
