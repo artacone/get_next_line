@@ -7,12 +7,12 @@
 
 int		main()
 {
-	char	*line;
+	char	*line = NULL;
 	int		fd;
 	int		i;
 
 #if 1
-	fd = open("test.txt", O_RDONLY);
+	fd = open("./test/test.txt", O_RDONLY);
 
 	while((i = get_next_line(fd, &line)) > 0)
 	{
@@ -20,7 +20,7 @@ int		main()
 		free (line);
 	}
 	printf("[i:%d %s\n", i, line);
-	free(line);
+	if (line) free(line);
 #else
 	fd = open("test.txt", O_RDONLY);
 
